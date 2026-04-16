@@ -40,6 +40,4 @@ Users can create an account, log in, and add pets for adoption.
 
 ---
 
-## ▶️ Run the Project
 
-### Backend
