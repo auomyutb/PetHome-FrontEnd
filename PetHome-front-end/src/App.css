@@ -10,7 +10,7 @@ body {
   color: #2d2d2d;
 }
 
- a {
+a {
   text-decoration: none;
 }
 
@@ -69,7 +69,7 @@ body {
 
 .hero {
   height: 85vh;
-  background-image: url('https://images.unsplash.com/photo-1517849845537-4d257902454a?w=1200');
+  background-image: url("https://images.unsplash.com/photo-1517849845537-4d257902454a?w=1200");
   background-size: cover;
   background-position: center;
   display: flex;
@@ -246,4 +246,53 @@ body {
   .page-section {
     padding: 40px 20px;
   }
+}
+
+.admin-form-box {
+  background-color: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 40px;
+}
+
+.admin-form-box h2 {
+  margin-bottom: 20px;
+  color: #7b4f2a;
+}
+
+select {
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.auth-box {
+  max-width: 500px;
+  margin: 0 auto;
+  background-color: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.auth-box h1 {
+  margin-bottom: 20px;
+  color: #7b4f2a;
+  text-align: center;
+}
+
+.auth-text {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.logout-btn {
+  padding: 10px 16px;
+  border: none;
+  background-color: #7b4f2a;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
 }
