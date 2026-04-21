@@ -13,12 +13,16 @@ import Admin from './pages/Admin'
 import SignUp from './pages/SignUp'
 import SignIn from './pages/SignIn'
 import ProtectedRoute from './components/ProtectedRoute'
+import Products from './pages/Products'
+import CartPage from './pages/CartPage'
 
 const App = () => {
   const [pets, setPets] = useState([])
   const [dogs, setDogs] = useState([])
   const [cats, setCats] = useState([])
   const [donations, setDonations] = useState([])
+  const [products, setProducts] = useState([])
+  const [cart, setCart] = useState(null)
   const [user, setUser] = useState(null)
 
   const fetchPets = async () => {
@@ -43,13 +47,36 @@ const App = () => {
     }
   }
 
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/products')
+      setProducts(response.data)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const fetchCart = async (userId) => {
+    try {
+      if (!userId) return
+      const response = await axios.get(`http://localhost:3000/cart/${userId}`)
+      setCart(response.data)
+    } catch (error) {
+      console.log(error)
+      setCart(null)
+    }
+  }
+
   useEffect(() => {
     fetchPets()
     fetchDonations()
+    fetchProducts()
 
     const savedUser = localStorage.getItem('user')
     if (savedUser) {
-      setUser(JSON.parse(savedUser))
+      const parsedUser = JSON.parse(savedUser)
+      setUser(parsedUser)
+      fetchCart(parsedUser.id || parsedUser._id)
     }
   }, [])
 
@@ -122,7 +149,6 @@ const App = () => {
     }
   }
 
-
   const deleteDonation = async (id) => {
     try {
       const token = localStorage.getItem('token')
@@ -138,6 +164,89 @@ const App = () => {
     } catch (error) {
       console.log(error)
       return false
+    }
+  }
+
+  const addProduct = async (productData) => {
+    try {
+      await axios.post('http://localhost:3000/products', productData)
+      fetchProducts()
+      return true
+    } catch (error) {
+      console.log(error)
+      return false
+    }
+  }
+
+  const updateProduct = async (id, productData) => {
+    try {
+      await axios.put(`http://localhost:3000/products/${id}`, productData)
+      fetchProducts()
+      return true
+    } catch (error) {
+      console.log(error)
+      return false
+    }
+  }
+
+  const deleteProduct = async (id) => {
+    try {
+      await axios.delete(`http://localhost:3000/products/${id}`)
+      fetchProducts()
+      return true
+    } catch (error) {
+      console.log(error)
+      return false
+    }
+  }
+
+  const addToCart = async (productId) => {
+    try {
+      if (!user) {
+        alert('Please sign in first')
+        return
+      }
+
+      const userId = user.id || user._id
+
+      await axios.post('http://localhost:3000/cart/add', {
+        user: userId,
+        product: productId,
+        quantity: 1
+      })
+
+      fetchCart(userId)
+      alert('Product added to cart')
+    } catch (error) {
+      console.log(error)
+      alert('Error adding product to cart')
+    }
+  }
+
+  const removeFromCart = async (productId) => {
+    try {
+      const userId = user.id || user._id
+
+      await axios.post('http://localhost:3000/cart/remove', {
+        user: userId,
+        product: productId
+      })
+
+      fetchCart(userId)
+    } catch (error) {
+      console.log(error)
+      alert('Error removing product')
+    }
+  }
+
+  const clearCart = async () => {
+    try {
+      const userId = user.id || user._id
+      await axios.delete(`http://localhost:3000/cart/clear/${userId}`)
+      setCart(null)
+    } catch (error) {
+      console.log(error)
+      alert('Error clearing cart')
     }
   }
 
@@ -158,6 +267,7 @@ const App = () => {
       localStorage.setItem('token', response.data.token)
       localStorage.setItem('user', JSON.stringify(response.data.user))
       setUser(response.data.user)
+      fetchCart(response.data.user.id || response.data.user._id)
 
       return true
     } catch (error) {
@@ -170,11 +280,12 @@ const App = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     setUser(null)
+    setCart(null)
   }
 
   return (
     <div className='app'>
-      <Header user={user} signOutUser={signOutUser} />
+      <Header user={user} signOutUser={signOutUser} cart={cart} />
 
       <Routes>
         <Route path='/' element={<Home user={user} />} />
@@ -185,6 +296,8 @@ const App = () => {
         <Route path='/thank-you' element={<ThankYou />} />
         <Route path='/sign-up' element={<SignUp signUpUser={signUpUser} />} />
         <Route path='/sign-in' element={<SignIn signInUser={signInUser} />} />
+        <Route path='/products' element={<Products products={products} addToCart={addToCart} />} />
+        <Route path='/cart' element={<CartPage cart={cart} removeFromCart={removeFromCart} clearCart={clearCart} />} />
 
         <Route
           path='/admin'
@@ -193,10 +306,14 @@ const App = () => {
               <Admin
                 pets={pets}
                 donations={donations}
+                products={products}
                 addPet={addPet}
                 updatePet={updatePet}
                 deletePet={deletePet}
                 deleteDonation={deleteDonation}
+                addProduct={addProduct}
+                updateProduct={updateProduct}
+                deleteProduct={deleteProduct}
               />
             </ProtectedRoute>
           }

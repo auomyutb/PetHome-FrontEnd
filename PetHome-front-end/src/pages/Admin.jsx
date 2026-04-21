@@ -1,6 +1,17 @@
 import { useState } from 'react'
 
-const Admin = ({ pets, donations, addPet, updatePet, deletePet, deleteDonation }) => {
+const Admin = ({
+  pets,
+  donations,
+  products,
+  addPet,
+  updatePet,
+  deletePet,
+  deleteDonation,
+  addProduct,
+  updateProduct,
+  deleteProduct
+}) => {
   const [form, setForm] = useState({
     name: '',
     type: 'dog',
@@ -10,11 +21,24 @@ const Admin = ({ pets, donations, addPet, updatePet, deletePet, deleteDonation }
     image: ''
   })
 
+  const [productForm, setProductForm] = useState({
+    name: '',
+    description: '',
+    price: '',
+    quantity: '',
+    image: ''
+  })
+
   const [loading, setLoading] = useState(false)
   const [editId, setEditId] = useState(null)
+  const [productEditId, setProductEditId] = useState(null)
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
+  }
+
+  const handleProductChange = (e) => {
+    setProductForm({ ...productForm, [e.target.name]: e.target.value })
   }
 
   const resetForm = () => {
@@ -27,6 +51,17 @@ const Admin = ({ pets, donations, addPet, updatePet, deletePet, deleteDonation }
       image: ''
     })
     setEditId(null)
+  }
+
+  const resetProductForm = () => {
+    setProductForm({
+      name: '',
+      description: '',
+      price: '',
+      quantity: '',
+      image: ''
+    })
+    setProductEditId(null)
   }
 
   const handleSubmit = async (e) => {
@@ -51,6 +86,28 @@ const Admin = ({ pets, donations, addPet, updatePet, deletePet, deleteDonation }
     setLoading(false)
   }
 
+  const handleProductSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+
+    let success = false
+
+    if (productEditId) {
+      success = await updateProduct(productEditId, productForm)
+    } else {
+      success = await addProduct(productForm)
+    }
+
+    if (success) {
+      alert(productEditId ? 'Product updated successfully' : 'Product added successfully')
+      resetProductForm()
+    } else {
+      alert(productEditId ? 'Error updating product' : 'Error adding product')
+    }
+
+    setLoading(false)
+  }
+
   const handleEdit = (pet) => {
     setForm({
       name: pet.name,
@@ -62,6 +119,19 @@ const Admin = ({ pets, donations, addPet, updatePet, deletePet, deleteDonation }
     })
 
     setEditId(pet._id)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleEditProduct = (product) => {
+    setProductForm({
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      quantity: product.quantity,
+      image: product.image
+    })
+
+    setProductEditId(product._id)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -94,6 +164,22 @@ const Admin = ({ pets, donations, addPet, updatePet, deletePet, deleteDonation }
       alert('Donation deleted successfully')
     } else {
       alert('Error deleting donation')
+    }
+  }
+
+  const handleDeleteProduct = async (id) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this product?')
+
+    if (!confirmDelete) {
+      return
+    }
+
+    const success = await deleteProduct(id)
+
+    if (success) {
+      alert('Product deleted successfully')
+    } else {
+      alert('Error deleting product')
     }
   }
 
@@ -190,17 +276,102 @@ const Admin = ({ pets, donations, addPet, updatePet, deletePet, deleteDonation }
               <p>{pet.description}</p>
 
               <div className='admin-buttons-row'>
-                <button
-                  className='edit-btn'
-                  onClick={() => handleEdit(pet)}
-                >
+                <button className='edit-btn' onClick={() => handleEdit(pet)}>
                   Edit
                 </button>
 
-                <button
-                  className='delete-btn'
-                  onClick={() => handleDelete(pet._id)}
-                >
+                <button className='delete-btn' onClick={() => handleDelete(pet._id)}>
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className='admin-form-box'>
+        <h2>{productEditId ? 'Update Product' : 'Add New Product'}</h2>
+
+        <form onSubmit={handleProductSubmit} className='donation-form'>
+          <input
+            type='text'
+            name='name'
+            placeholder='Product Name'
+            value={productForm.name}
+            onChange={handleProductChange}
+            required
+          />
+
+          <textarea
+            name='description'
+            placeholder='Description'
+            value={productForm.description}
+            onChange={handleProductChange}
+            required
+          ></textarea>
+
+          <input
+            type='number'
+            name='price'
+            placeholder='Price'
+            value={productForm.price}
+            onChange={handleProductChange}
+            required
+          />
+
+          <input
+            type='number'
+            name='quantity'
+            placeholder='Quantity'
+            value={productForm.quantity}
+            onChange={handleProductChange}
+            required
+          />
+
+          <input
+            type='text'
+            name='image'
+            placeholder='Image URL'
+            value={productForm.image}
+            onChange={handleProductChange}
+            required
+          />
+
+          <div className='admin-buttons-row'>
+            <button type='submit' className='main-btn'>
+              {loading ? 'Saving...' : productEditId ? 'Update Product' : 'Add Product'}
+            </button>
+
+            {productEditId && (
+              <button
+                type='button'
+                className='cancel-btn'
+                onClick={resetProductForm}
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+
+      <div className='page-section'>
+        <h2>All Products</h2>
+        <div className='admin-grid'>
+          {products.map((product) => (
+            <div key={product._id} className='admin-card'>
+              <img src={product.image} alt={product.name} className='admin-proof' />
+              <h3>{product.name}</h3>
+              <p>{product.description}</p>
+              <p><strong>Price:</strong> {product.price} BHD</p>
+              <p><strong>Quantity:</strong> {product.quantity}</p>
+
+              <div className='admin-buttons-row'>
+                <button className='edit-btn' onClick={() => handleEditProduct(product)}>
+                  Edit
+                </button>
+
+                <button className='delete-btn' onClick={() => handleDeleteProduct(product._id)}>
                   Delete
                 </button>
               </div>
