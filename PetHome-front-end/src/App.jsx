@@ -15,7 +15,7 @@ import SignIn from "./pages/SignIn"
 import ProtectedRoute from "./components/ProtectedRoute"
 import Products from "./pages/Products"
 import CartPage from "./pages/CartPage"
-
+           
 const App = () => {
   const [pets, setPets] = useState([])
   const [dogs, setDogs] = useState([])
